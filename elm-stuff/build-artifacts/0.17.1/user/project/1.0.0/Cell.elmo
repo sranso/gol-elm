@@ -1,0 +1,49 @@
+var _user$project$Cell$init = function (a) {
+	return a;
+};
+var _user$project$Cell$Alive = {ctor: 'Alive'};
+var _user$project$Cell$Dead = {ctor: 'Dead'};
+var _user$project$Cell$update = F2(
+	function (msg, model) {
+		var _p0 = model;
+		if (_p0.ctor === 'Alive') {
+			return _user$project$Cell$Dead;
+		} else {
+			return _user$project$Cell$Alive;
+		}
+	});
+var _user$project$Cell$GoToOtherSide = {ctor: 'GoToOtherSide'};
+var _user$project$Cell$view = function (model) {
+	var color = function () {
+		var _p1 = model;
+		if (_p1.ctor === 'Alive') {
+			return 'blue';
+		} else {
+			return 'grey';
+		}
+	}();
+	var divStyle = _elm_lang$html$Html_Attributes$style(
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'background-color', _1: color},
+				{ctor: '_Tuple2', _0: 'height', _1: '60px'},
+				{ctor: '_Tuple2', _0: 'width', _1: '60px'}
+			]));
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				divStyle,
+				_elm_lang$html$Html_Events$onClick(_user$project$Cell$GoToOtherSide)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[]));
+};
+var _user$project$Cell$main = {
+	main: _elm_lang$html$Html_App$beginnerProgram(
+		{
+			model: _user$project$Cell$init(_user$project$Cell$Alive),
+			update: _user$project$Cell$update,
+			view: _user$project$Cell$view
+		})
+};
