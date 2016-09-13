@@ -5,7 +5,7 @@ import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
 import Html.App as App
 
---Main
+-- MAIN
 
 main =
   App.beginnerProgram
@@ -14,7 +14,7 @@ main =
     , view = view
     }
 
---Model
+-- MODEL
 
 type Automaton = Dead | Alive
 
@@ -25,7 +25,7 @@ init : Automaton -> Model
 --function logic
 init a = a
 
---Update
+-- UPDATE
 
 type Msg
   = GoToOtherSide
@@ -36,7 +36,7 @@ update msg model =
     Alive -> Dead
     Dead -> Alive
 
---View
+-- VIEW
 
 view : Model -> Html Msg
 view model =

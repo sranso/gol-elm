@@ -1,6 +1,6 @@
 module World exposing (..)
 
-import Html exposing (Html, div)
+import Html exposing (Html, div, table, tr, td)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
 import Html.App as App
@@ -9,7 +9,7 @@ import Task
 
 import Cell
 
---Main
+-- MAIN
 main =
   App.program
     { init = init
@@ -18,7 +18,7 @@ main =
     , subscriptions = subscriptions
     }
 
---Model
+-- MODEL
 
 type alias Model =
   { ecosystem : Ecosystem
@@ -49,17 +49,48 @@ neighbors (i, j) = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)]
 
 -- index map goes here
 
---Update
+-- UPDATE
 
 type Msg
-  = NewGeneration
+  = NextGeneration
   | NewWindowSize Window.Size
   | SizeUpdateFailure String
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    NewGeneration -> makeNextGen model
-    -- fxn that takes in model and returns next gen
+    NextGeneration -> (model, Cmd.none)
+    NewWindowSize newWindowSize -> ({ model | windowSize = newWindowSize }, Cmd.none)
+    SizeUpdateFailure _ -> (model, Cmd.none)
 
 -- define makeNextGen. write pseudo code first.
+
+-- SUBSCRIPTIONS
+
+subscriptions : Model -> Sub Msg
+subscriptions model = Window.resizes NewWindowSize
+
+-- VIEW
+
+view : Model -> Html Msg
+view ({ecosystem, windowSize, generations} as model) =
+  let
+      minSize = (Basics.min windowSize.width windowSize.height) |> toFloat
+      size = toString minSize
+      cellSize = toString (minSize / 10)
+      cellStyle =
+        style
+          [ ("width", cellSize ++ "px")
+          , ("height", cellSize ++ "px")
+          ]
+      rows = List.indexedMap
+        (\i row -> tr [] (row |> List.indexedMap
+          (\j cellModel -> td [ cellStyle ] [ (Cell.view cellModel) ])
+        )) model.ecosystem
+      automatonTable = table [] rows
+      mainDivStyle = style [ ("width", size ++ "px") ]
+  in
+      div [ mainDivStyle ]
+          [ div [ style [ ("flex-grow", "100") ] ] [ automatonTable ] ]
+
+
