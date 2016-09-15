@@ -32,9 +32,10 @@ type Msg
 
 update : Msg -> Model -> Model
 update msg model =
-  case model of
-    Alive -> Dead
-    Dead -> Alive
+  case msg of
+    GoToOtherSide -> case model of
+      Alive -> Dead
+      Dead -> Alive
 
 -- VIEW
 
@@ -48,8 +49,8 @@ view model =
     divStyle =
       style
         [ ("background-color", color)
-        , ("height", "60px")
-        , ("width", "60px")
+        , ("height", "40px")
+        , ("width", "40px")
         ]
   in
     div [ divStyle, onClick GoToOtherSide ] []

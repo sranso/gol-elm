@@ -1,12 +1,18 @@
 module World exposing (..)
 
-import Html exposing (Html, div, table, tr, td)
+import Html exposing (Html, div, table, tr, td, text, button)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
 import Html.App as App
 import Window
 import Task
 import Cell exposing (..)
+
+-- TODO LIST
+-- remove unnecessary code from Cell re GoToOtherSide
+-- add styles to button
+-- remove extra whitespace for world / fix resizing
+-- implement GOL logic
 
 -- MAIN
 main =
@@ -51,16 +57,21 @@ neighbors (i, j) = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)]
 -- UPDATE
 
 type Msg
-  = NextGeneration Cell.Msg
+  = CellMessage Cell.Msg
   | NewWindowSize Window.Size
   | SizeUpdateFailure String
+  | NextGeneration
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    NextGeneration cellMsg -> (model, Cmd.none)
+    CellMessage cellMsg -> (model, Cmd.none)
     NewWindowSize newWindowSize -> ({ model | windowSize = newWindowSize }, Cmd.none)
     SizeUpdateFailure _ -> (model, Cmd.none)
+    NextGeneration -> ({ model
+      | ecosystem = List.map (\ row -> List.map (\ cellModel -> Cell.update GoToOtherSide cellModel) row
+      ) model.ecosystem
+    }, Cmd.none)
 
 -- define makeNextGen. write pseudo code first.
 
@@ -92,14 +103,14 @@ view ({ecosystem, windowSize, generations} as model) =
       mainDivStyle = style [ ("width", size ++ "px") ]
   in
       div [ mainDivStyle ]
-          [ div [ style [ ("flex-grow", "100") ] ] [ automatonTable ] ]
+          [ div [ style [ ("flex-grow", "100") ] ] [ automatonTable ],
+            button [ onClick NextGeneration ] [ text "Next gen!" ]
+          ]
 
 renderCell : Cell.Model -> Html Msg
 renderCell cellModel =
   cellModel
     |> Cell.view
-    |> App.map NextGeneration
-
-
+    |> App.map CellMessage
 
 
