@@ -6,8 +6,7 @@ import Html.Events exposing (onClick)
 import Html.App as App
 import Window
 import Task
-
-import Cell
+import Cell exposing (..)
 
 -- MAIN
 main =
@@ -52,14 +51,14 @@ neighbors (i, j) = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)]
 -- UPDATE
 
 type Msg
-  = NextGeneration
+  = NextGeneration Cell.Msg
   | NewWindowSize Window.Size
   | SizeUpdateFailure String
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    NextGeneration -> (model, Cmd.none)
+    NextGeneration cellMsg -> (model, Cmd.none)
     NewWindowSize newWindowSize -> ({ model | windowSize = newWindowSize }, Cmd.none)
     SizeUpdateFailure _ -> (model, Cmd.none)
 
@@ -84,13 +83,23 @@ view ({ecosystem, windowSize, generations} as model) =
           , ("height", cellSize ++ "px")
           ]
       rows = List.indexedMap
-        (\i row -> tr [] (row |> List.indexedMap
-          (\j cellModel -> td [ cellStyle ] [ (Cell.view cellModel) ])
-        )) model.ecosystem
+        (\i row -> tr [] (row |>
+          List.indexedMap (\j cellModel ->
+            td [ cellStyle ] [ (renderCell cellModel) ]))
+        )
+        model.ecosystem
       automatonTable = table [] rows
       mainDivStyle = style [ ("width", size ++ "px") ]
   in
       div [ mainDivStyle ]
           [ div [ style [ ("flex-grow", "100") ] ] [ automatonTable ] ]
+
+renderCell : Cell.Model -> Html Msg
+renderCell cellModel =
+  cellModel
+    |> Cell.view
+    |> App.map NextGeneration
+
+
 
 
