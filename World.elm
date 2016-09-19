@@ -6,10 +6,11 @@ import Html.Events exposing (onClick)
 import Html.App as App
 import Window
 import Task
+import Random
 import Cell exposing (..)
 
 -- TODO LIST
--- implement GOL logic
+-- add random start
 -- add styles to button
 -- remove extra whitespace for world / fix resizing
 
@@ -36,7 +37,7 @@ init : (Model, Cmd Msg)
 init =
   let
     listOfCells = List.repeat 10 (List.repeat 10 0)
-    newEcosystem = List.indexedMap (\i row -> row |> List.indexedMap (\j num -> (Cell.init Cell.Alive (i, j)) ) ) listOfCells
+    newEcosystem = List.indexedMap (\i row -> row |> List.indexedMap (\j num -> (Cell.init Cell.Alive (i, j)))) listOfCells
     size = { width = 800, height = 800 }
     model = { ecosystem = newEcosystem, windowSize = size, generations = 0 }
     windowSizeCmd = getWindowSize
@@ -59,6 +60,7 @@ type Msg
   | NewWindowSize Window.Size
   | SizeUpdateFailure String
   | NextGeneration
+  | NewEcosystem Ecosystem
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -67,6 +69,7 @@ update msg model =
     NewWindowSize newWindowSize -> ({ model | windowSize = newWindowSize }, Cmd.none)
     SizeUpdateFailure _ -> (model, Cmd.none)
     NextGeneration -> (makeNextGen model, Cmd.none)
+    NewEcosystem newEcosystem -> ({ model | ecosystem = newEcosystem, generations = 0 }, Cmd.none)
 
 -- define makeNextGen. write pseudo code first.
 makeNextGen : Model -> Model
@@ -91,24 +94,14 @@ liveOrDie ({lifeStatus, coords} as model) ecosystem =
       else
         False
       )
-    isNeighborAndDead = (\cellModel -> 
-      if (List.member (.coords cellModel) cellNeighbors) then
-        if (cellModel.lifeStatus == Dead) then
-          True
-        else
-          False
-      else
-        False
-      )
     liveNeighbors = List.length (List.map (\row -> List.filter isNeighborAndAlive row) ecosystem)
-    deadNeighbors = List.length (List.map (\row -> List.filter isNeighborAndDead row) ecosystem)
   in
     case lifeStatus of
       Alive -> case liveNeighbors of
         2 -> model
         3 -> model
         _ -> Cell.update GoToOtherSide model
-      Dead -> case deadNeighbors of
+      Dead -> case liveNeighbors of
         3 -> Cell.update GoToOtherSide model
         _ -> model
 
