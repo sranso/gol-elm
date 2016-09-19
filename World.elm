@@ -9,10 +9,9 @@ import Task
 import Cell exposing (..)
 
 -- TODO LIST
--- remove unnecessary code from Cell re GoToOtherSide
+-- implement GOL logic
 -- add styles to button
 -- remove extra whitespace for world / fix resizing
--- implement GOL logic
 
 -- MAIN
 main =
@@ -33,12 +32,11 @@ type alias Model =
 
 type alias Ecosystem = List (List Cell.Model)
 
-type alias Coords = (Int, Int)
-
 init : (Model, Cmd Msg)
 init =
   let
-    newEcosystem = List.repeat 10 (List.repeat 10 (Cell.init Cell.Alive))
+    listOfCells = List.repeat 10 (List.repeat 10 0)
+    newEcosystem = List.indexedMap (\i row -> row |> List.indexedMap (\j num -> (Cell.init Cell.Alive (i, j)) ) ) listOfCells
     size = { width = 800, height = 800 }
     model = { ecosystem = newEcosystem, windowSize = size, generations = 0 }
     windowSizeCmd = getWindowSize
@@ -68,12 +66,51 @@ update msg model =
     CellMessage cellMsg -> (model, Cmd.none)
     NewWindowSize newWindowSize -> ({ model | windowSize = newWindowSize }, Cmd.none)
     SizeUpdateFailure _ -> (model, Cmd.none)
-    NextGeneration -> ({ model
-      | ecosystem = List.map (\ row -> List.map (\ cellModel -> Cell.update GoToOtherSide cellModel) row
-      ) model.ecosystem
-    }, Cmd.none)
+    NextGeneration -> (makeNextGen model, Cmd.none)
 
 -- define makeNextGen. write pseudo code first.
+makeNextGen : Model -> Model
+makeNextGen ({ecosystem, windowSize, generations} as model) =
+  let
+    newGen = List.map (\row -> List.map (\cellModel -> liveOrDie cellModel ecosystem) row) ecosystem
+  in
+    { model
+      | ecosystem = newGen
+    }
+
+liveOrDie : Cell.Model -> Ecosystem -> Cell.Model
+liveOrDie ({lifeStatus, coords} as model) ecosystem =
+  let
+    cellNeighbors = neighbors coords
+    isNeighborAndAlive = (\cellModel -> 
+      if (List.member (.coords cellModel) cellNeighbors) then
+        if (cellModel.lifeStatus == Alive) then
+          True
+        else
+          False
+      else
+        False
+      )
+    isNeighborAndDead = (\cellModel -> 
+      if (List.member (.coords cellModel) cellNeighbors) then
+        if (cellModel.lifeStatus == Dead) then
+          True
+        else
+          False
+      else
+        False
+      )
+    liveNeighbors = List.length (List.map (\row -> List.filter isNeighborAndAlive row) ecosystem)
+    deadNeighbors = List.length (List.map (\row -> List.filter isNeighborAndDead row) ecosystem)
+  in
+    case lifeStatus of
+      Alive -> case liveNeighbors of
+        2 -> model
+        3 -> model
+        _ -> Cell.update GoToOtherSide model
+      Dead -> case deadNeighbors of
+        3 -> Cell.update GoToOtherSide model
+        _ -> model
 
 -- SUBSCRIPTIONS
 
@@ -93,17 +130,17 @@ view ({ecosystem, windowSize, generations} as model) =
           [ ("width", cellSize ++ "px")
           , ("height", cellSize ++ "px")
           ]
-      rows = List.indexedMap
-        (\i row -> tr [] (row |>
-          List.indexedMap (\j cellModel ->
+      rows = List.map
+        (\row -> tr [] (row |>
+          List.map (\cellModel ->
             td [ cellStyle ] [ (renderCell cellModel) ]))
         )
         model.ecosystem
-      automatonTable = table [] rows
+      cellTable = table [] rows
       mainDivStyle = style [ ("width", size ++ "px") ]
   in
       div [ mainDivStyle ]
-          [ div [ style [ ("flex-grow", "100") ] ] [ automatonTable ],
+          [ div [ style [ ("flex-grow", "100") ] ] [ cellTable ],
             button [ onClick NextGeneration ] [ text "Next gen!" ]
           ]
 

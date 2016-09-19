@@ -9,21 +9,29 @@ import Html.App as App
 
 main =
   App.beginnerProgram
-    { model = init Alive
+    { model = init Alive (0, 0)
     , update = update
     , view = view
     }
 
 -- MODEL
 
-type Automaton = Dead | Alive
+type LifeStatus = Dead | Alive
 
-type alias Model = Automaton
+type alias Coords = (Int, Int)
+
+type alias Model =
+  { lifeStatus : LifeStatus
+  , coords : Coords
+  }
 
 --function def
-init : Automaton -> Model
+init : LifeStatus -> Coords -> Model
 --function logic
-init a = a
+init lifeStatus coords =
+  { lifeStatus = lifeStatus
+  , coords = coords
+  }
 
 -- UPDATE
 
@@ -31,19 +39,19 @@ type Msg
   = GoToOtherSide
 
 update : Msg -> Model -> Model
-update msg model =
+update msg ({lifeStatus, coords} as model) =
   case msg of
-    GoToOtherSide -> case model of
-      Alive -> Dead
-      Dead -> Alive
+    GoToOtherSide -> case lifeStatus of
+      Alive -> { model | lifeStatus = Dead }
+      Dead -> { model | lifeStatus = Alive }
 
 -- VIEW
 
 view : Model -> Html Msg
-view model =
+view ({lifeStatus, coords} as model) =
   let
     color =
-      case model of
+      case lifeStatus of
         Alive -> "blue"
         Dead -> "grey"
     divStyle =
@@ -53,5 +61,5 @@ view model =
         , ("width", "40px")
         ]
   in
-    div [ divStyle, onClick GoToOtherSide ] []
+    div [ divStyle ] []
 
