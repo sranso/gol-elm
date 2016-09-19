@@ -7,9 +7,11 @@ import Html.App as App
 import Window
 import Task
 import Random
+import Debug
 import Cell exposing (..)
 
 -- TODO LIST
+-- figure out why some cells aren't going to the other side
 -- add random start
 -- add styles to button
 -- remove extra whitespace for world / fix resizing
@@ -86,15 +88,13 @@ liveOrDie ({lifeStatus, coords} as model) ecosystem =
   let
     cellNeighbors = neighbors coords
     isNeighborAndAlive = (\cellModel -> 
-      if (List.member (.coords cellModel) cellNeighbors) then
-        if (cellModel.lifeStatus == Alive) then
-          True
-        else
-          False
+      if ((List.member (.coords cellModel) cellNeighbors) && (cellModel.lifeStatus == Alive)) then
+        True
       else
         False
       )
-    liveNeighbors = List.length (List.map (\row -> List.filter isNeighborAndAlive row) ecosystem)
+    neighbs = Debug.log "live ne " (List.concatMap (\row -> List.filter isNeighborAndAlive row) ecosystem)
+    liveNeighbors = List.length (List.concatMap (\row -> List.filter isNeighborAndAlive row) ecosystem)
   in
     case lifeStatus of
       Alive -> case liveNeighbors of
