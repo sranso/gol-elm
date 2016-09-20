@@ -51,7 +51,15 @@ getWindowSize : Cmd Msg
 getWindowSize = Task.perform SizeUpdateFailure NewWindowSize Window.size
 
 neighbors : Coords -> List Coords
-neighbors (i, j) = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)]
+-- counter clockwise from top left where i is row, j is col
+neighbors (i, j) = [(i + 1, j - 1),
+                    (i + 1, j),
+                    (i + 1, j + 1),
+                    (i, j + 1),
+                    (i - 1, j + 1),
+                    (i - 1, j),
+                    (i - 1, j - 1),
+                    (i, j - 1)]
 
 -- index map goes here
 
