@@ -61,8 +61,6 @@ neighbors (i, j) = [(i + 1, j - 1),
                     (i - 1, j - 1),
                     (i, j - 1)]
 
--- index map goes here
-
 -- UPDATE
 
 type Msg
@@ -71,6 +69,8 @@ type Msg
   | SizeUpdateFailure String
   | NextGeneration
   | NewEcosystem Ecosystem
+  | TriggerNewRandomEcosystem
+  | NewRandomCell Bool
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -80,6 +80,16 @@ update msg model =
     SizeUpdateFailure _ -> (model, Cmd.none)
     NextGeneration -> (makeNextGen model, Cmd.none)
     NewEcosystem newEcosystem -> ({ model | ecosystem = newEcosystem, generations = 0 }, Cmd.none)
+    TriggerNewRandomEcosystem -> (model, Random.generate NewRandomCell Random.bool)
+    -- TODO
+    -- build new random cell
+    -- with new random cell, return new model with new random cell instead of one of old ones
+    -- at first, just change top left, and then immediately ask to change the next-over cell (add another field to model
+    -- which would be current cell we're working on). we'll end up calling this fxn 100x.
+
+    -- eventually, will need more than just Random.bool -- eg
+    -- 2d arr of / 100 random ints / random bools that we can use to repopulate the ecosystem
+    NewRandomCell on -> ()
 
 -- define makeNextGen. write pseudo code first.
 makeNextGen : Model -> Model
@@ -91,6 +101,12 @@ makeNextGen ({ecosystem, windowSize, generations} as model) =
       | ecosystem = newGen
     }
 
+updateOneCell : Cell.Model -> Ecosystem -> Ecosystem
+updateOneCell ({lifeStatus, coords} as model) ecosystem =
+  -- TODO create new ecosystem where just one cell is diff
+  case ecosystem of
+
+
 liveOrDie : Cell.Model -> Ecosystem -> Cell.Model
 liveOrDie ({lifeStatus, coords} as model) ecosystem =
   let
@@ -101,7 +117,6 @@ liveOrDie ({lifeStatus, coords} as model) ecosystem =
       else
         False
       )
-    neighbs = Debug.log "live ne " (List.concatMap (\row -> List.filter isNeighborAndAlive row) ecosystem)
     liveNeighbors = List.length (List.concatMap (\row -> List.filter isNeighborAndAlive row) ecosystem)
   in
     case lifeStatus of
@@ -141,8 +156,9 @@ view ({ecosystem, windowSize, generations} as model) =
       mainDivStyle = style [ ("width", size ++ "px") ]
   in
       div [ mainDivStyle ]
-          [ div [ style [ ("flex-grow", "100") ] ] [ cellTable ],
-            button [ onClick NextGeneration ] [ text "Next gen!" ]
+          [ div [ style [ ("flex-grow", "100") ] ] [ cellTable ]
+          , button [ onClick NextGeneration ] [ text "Next gen!" ]
+          , button [ onClick TriggerNewRandomEcosystem ] [ text "New random!" ]
           ]
 
 renderCell : Cell.Model -> Html Msg

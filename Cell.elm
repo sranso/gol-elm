@@ -5,15 +5,6 @@ import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
 import Html.App as App
 
--- MAIN
-
-main =
-  App.beginnerProgram
-    { model = init Alive (0, 0)
-    , update = update
-    , view = view
-    }
-
 -- MODEL
 
 type LifeStatus = Dead | Alive
