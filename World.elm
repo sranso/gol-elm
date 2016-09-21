@@ -77,8 +77,8 @@ type Msg
   | SizeUpdateFailure String
   | NextGeneration
   | NewEcosystem Ecosystem
-  | TriggerNewRandomEcosystem
-  -- | NewRandomCell Bool
+  | RandomizeEcosystem
+  | ChangeCellTo Bool
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -88,8 +88,7 @@ update msg model =
     SizeUpdateFailure _ -> (model, Cmd.none)
     NextGeneration -> (makeNextGen model, Cmd.none)
     NewEcosystem newEcosystem -> ({ model | ecosystem = newEcosystem, generations = 0 }, Cmd.none)
-    TriggerNewRandomEcosystem -> (model, Cmd.none)
-    -- TriggerNewRandomEcosystem -> (model, Random.generate NewRandomCell Random.bool)
+    RandomizeEcosystem -> (model, Random.generate ChangeCellTo Random.bool)
     -- TODO
     -- build new random cell
     -- with new random cell, return new model with new random cell instead of one of old ones
@@ -98,9 +97,9 @@ update msg model =
 
     -- eventually, will need more than just Random.bool -- eg
     -- 2d arr of / 100 random ints / random bools that we can use to repopulate the ecosystem
-    -- NewRandomCell on -> ()
+    ChangeCellTo on ->
+      ({ model | ecosystem = ecoWithFirstSpot model.ecosystem on }, Cmd.none)
 
--- define makeNextGen. write pseudo code first.
 makeNextGen : Model -> Model
 makeNextGen ({ecosystem, windowSize, generations} as model) =
   let
@@ -110,11 +109,27 @@ makeNextGen ({ecosystem, windowSize, generations} as model) =
       | ecosystem = newGen
     }
 
---updateOneCell : Cell.Model -> Ecosystem -> Ecosystem
---updateOneCell ({lifeStatus, coords} as model) ecosystem =
---  -- TODO create new ecosystem where just one cell is diff
---  case ecosystem of
+boolToLifeStatus : Bool -> LifeStatus
+boolToLifeStatus on =
+  if on then
+    Alive
+  else
+    Dead
 
+ecoWithFirstSpot : Ecosystem -> Bool -> Ecosystem
+ecoWithFirstSpot ecosystem on =
+  let
+    lifeStatus = boolToLifeStatus on
+  in
+    case ecosystem of
+      [] ->
+        []
+      firstRow :: restOfRows ->
+        case firstRow of
+          [] ->
+            []
+          firstCell :: restOfCells ->
+            ({ firstCell | lifeStatus = lifeStatus } :: restOfCells) :: restOfRows
 
 liveOrDie : Cell.Model -> Ecosystem -> Cell.Model
 liveOrDie ({lifeStatus, coords} as model) ecosystem =
@@ -167,7 +182,7 @@ view ({ecosystem, windowSize, generations} as model) =
       div [ mainDivStyle ]
           [ div [ style [ ("flex-grow", "100") ] ] [ cellTable ]
           , button [ onClick NextGeneration ] [ text "Next gen!" ]
-          , button [ onClick TriggerNewRandomEcosystem ] [ text "New random!" ]
+          , button [ onClick RandomizeEcosystem ] [ text "New random!" ]
           ]
 
 renderCell : Cell.Model -> Html Msg
