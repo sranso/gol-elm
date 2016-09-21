@@ -13,6 +13,7 @@ import Cell exposing (..)
 -- TODO LIST
 -- add styles to button
 -- remove extra whitespace for world / fix resizing
+-- add rows and cols to model
 
 
 -- MAIN
@@ -52,6 +53,7 @@ init =
   let
     listOfCells = List.repeat columns ( List.repeat rows True )
     newEcosystem = makeNewEcosystem listOfCells
+
     size =
       { width = 800
       , height = 800
@@ -63,7 +65,8 @@ init =
       , leftToRandomize = 0
       }
     windowSizeCmd = getWindowSize
-    cmds = Cmd.batch [ windowSizeCmd ]
+    randomizeNewBoardCmd = randomizeNewBoard RandomizeEcosystem
+    cmds = Cmd.batch [ windowSizeCmd, randomizeNewBoardCmd ]
   in
     ( model, cmds )
 
@@ -78,6 +81,9 @@ makeNewEcosystem ecosystem =
 
 getWindowSize : Cmd Msg
 getWindowSize = Task.perform SizeUpdateFailure NewWindowSize Window.size
+
+randomizeNewBoard : msg -> Cmd msg
+randomizeNewBoard msg = Task.perform identity identity (Task.succeed msg)
 
 neighbors : Coords -> List Coords
 -- Neighbors are ordered counter clockwise from top left where i is row, j is col
