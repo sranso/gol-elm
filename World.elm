@@ -38,14 +38,22 @@ type alias Ecosystem = List (List Cell.Model)
 init : (Model, Cmd Msg)
 init =
   let
-    listOfCells = List.repeat 10 (List.repeat 10 0)
-    newEcosystem = List.indexedMap (\i row -> row |> List.indexedMap (\j num -> (Cell.init Cell.Alive (i, j)))) listOfCells
+    listOfCells = List.repeat 10 (List.repeat 10 False)
+    newEcosystem = makeNewEcosystem listOfCells
     size = { width = 800, height = 800 }
     model = { ecosystem = newEcosystem, windowSize = size, generations = 0 }
     windowSizeCmd = getWindowSize
     cmds = Cmd.batch [windowSizeCmd]
   in
     (model, cmds)
+
+makeNewEcosystem : List (List Bool) -> Ecosystem
+makeNewEcosystem ecosystem =
+  List.indexedMap (\i row ->
+    row |> List.indexedMap (\j num ->
+      (Cell.init Cell.Alive (i, j))
+    )
+  ) ecosystem
 
 getWindowSize : Cmd Msg
 getWindowSize = Task.perform SizeUpdateFailure NewWindowSize Window.size
@@ -70,7 +78,7 @@ type Msg
   | NextGeneration
   | NewEcosystem Ecosystem
   | TriggerNewRandomEcosystem
-  | NewRandomCell Bool
+  -- | NewRandomCell Bool
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -80,7 +88,8 @@ update msg model =
     SizeUpdateFailure _ -> (model, Cmd.none)
     NextGeneration -> (makeNextGen model, Cmd.none)
     NewEcosystem newEcosystem -> ({ model | ecosystem = newEcosystem, generations = 0 }, Cmd.none)
-    TriggerNewRandomEcosystem -> (model, Random.generate NewRandomCell Random.bool)
+    TriggerNewRandomEcosystem -> (model, Cmd.none)
+    -- TriggerNewRandomEcosystem -> (model, Random.generate NewRandomCell Random.bool)
     -- TODO
     -- build new random cell
     -- with new random cell, return new model with new random cell instead of one of old ones
@@ -89,7 +98,7 @@ update msg model =
 
     -- eventually, will need more than just Random.bool -- eg
     -- 2d arr of / 100 random ints / random bools that we can use to repopulate the ecosystem
-    NewRandomCell on -> ()
+    -- NewRandomCell on -> ()
 
 -- define makeNextGen. write pseudo code first.
 makeNextGen : Model -> Model
@@ -101,10 +110,10 @@ makeNextGen ({ecosystem, windowSize, generations} as model) =
       | ecosystem = newGen
     }
 
-updateOneCell : Cell.Model -> Ecosystem -> Ecosystem
-updateOneCell ({lifeStatus, coords} as model) ecosystem =
-  -- TODO create new ecosystem where just one cell is diff
-  case ecosystem of
+--updateOneCell : Cell.Model -> Ecosystem -> Ecosystem
+--updateOneCell ({lifeStatus, coords} as model) ecosystem =
+--  -- TODO create new ecosystem where just one cell is diff
+--  case ecosystem of
 
 
 liveOrDie : Cell.Model -> Ecosystem -> Cell.Model
