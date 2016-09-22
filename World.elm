@@ -1,6 +1,6 @@
 module World exposing (..)
 
-import Html exposing (Html, div, table, tr, td, text, button)
+import Html exposing (Html, div, table, tr, td, text, button, h2)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
 import Html.App as App
@@ -9,11 +9,6 @@ import Task
 import Random
 import Debug
 import Cell exposing (..)
-
--- TODO LIST
--- add styles to button
--- remove extra whitespace for world / fix resizing
--- add rows and cols to model
 
 
 -- MAIN
@@ -53,7 +48,6 @@ init =
   let
     listOfCells = List.repeat columns ( List.repeat rows True )
     newEcosystem = makeNewEcosystem listOfCells
-
     size =
       { width = 800
       , height = 800
@@ -228,27 +222,43 @@ subscriptions model = Window.resizes NewWindowSize
 view : Model -> Html Msg
 view ( { ecosystem, windowSize, generations } as model ) =
   let
-      minSize = ( Basics.min windowSize.width windowSize.height ) |> toFloat
-      size = toString minSize
-      cellSize = toString ( minSize / 10 )
-      cellStyle =
+      -- define sizes
+      minSize = ( Basics.min windowSize.width windowSize.height )
+        |> toFloat
+        |> (\ x -> x * 0.9 )
+      mainWidth = toString minSize
+      tdSize = toString ( ( minSize / columns ) - 2 )
+      -- define styles
+      tdStyle =
         style
-          [ ("width", cellSize ++ "px")
-          , ("height", cellSize ++ "px")
+          [ ( "width", tdSize ++ "px" )
+          , ( "height", tdSize ++ "px" )
           ]
+      mainDivStyle = style
+        [ ( "width", mainWidth ++ "px" )
+        , ( "text-align", "center" )
+        , ( "margin", "20px auto" )
+        , ( "font-family", "Verdana, Geneva, sans-serif" )
+        ]
+      buttonStyle = style
+        [ ( "font-family", "Verdana, Geneva, sans-serif" )
+        , ( "padding", "10px" )
+        , ( "margin", "0 20px" )
+        ]
+      -- define html elements
       rows = List.map (\ row ->
         tr [] ( row
           |> List.map (\ cellModel ->
-            td [ cellStyle ] [ (renderCell cellModel) ] )
+            td [ tdStyle ] [ ( renderCell cellModel ) ] )
           )
         ) model.ecosystem
-      cellTable = table [] rows
-      mainDivStyle = style [ ("width", size ++ "px") ]
+      cellTable = table [ style [ ( "margin-bottom", "20px" ) ] ] rows
   in
       div [ mainDivStyle ]
-          [ div [ style [ ( "flex-grow", "100" ) ] ] [ cellTable ]
-          , button [ onClick NextGeneration ] [ text "Next gen!" ]
-          , button [ onClick RandomizeEcosystem ] [ text "New random!" ]
+          [ h2 [] [ text "Conway's Game Of Life in Elm" ]
+          , cellTable
+          , button [ buttonStyle, onClick NextGeneration ] [ text "Next generation" ]
+          , button [ buttonStyle, onClick RandomizeEcosystem ] [ text "New random board" ]
           ]
 
 renderCell : Cell.Model -> Html Msg

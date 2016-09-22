@@ -55,8 +55,8 @@ view ( { lifeStatus, coords } as model ) =
     divStyle =
       style
         [ ( "background-color", color )
-        , ( "height", "40px" )
-        , ( "width", "40px" )
+        , ( "height", "100%" )
+        , ( "width", "100%" )
         ]
   in
     div [ divStyle ] []
