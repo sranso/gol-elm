@@ -165,25 +165,18 @@ ecoWithSpot row col on ecosystem =
   let
     lifeStatus = boolToLifeStatus on
   in
-    case ecosystem of
-      [] ->
-        []
-      firstRow :: restOfRows ->
-        if row > 0 then
-          firstRow :: ( ecoWithSpot (row - 1) col on restOfRows )
+    List.indexedMap
+      (\i r ->
+        if i == row then
+          (List.indexedMap
+          (\j cell ->
+            if j == col then
+              { cell | lifeStatus = lifeStatus }
+            else cell) r
+          )
         else
-          case firstRow of
-            [] ->
-              [] :: restOfRows
-            firstCell :: restOfCells ->
-              if col > 0 then
-                case ecoWithSpot row ( col - 1 ) on ( restOfCells :: restOfRows ) of
-                  [] ->
-                    []
-                  changedRow :: _ ->
-                    ( firstCell :: changedRow ) :: restOfRows
-               else
-                ( { firstCell | lifeStatus = lifeStatus } :: restOfCells ) :: restOfRows
+          r
+      ) ecosystem
 
 liveOrDie : CellModel -> Ecosystem -> CellModel
 liveOrDie ( { lifeStatus, coords } as model ) ecosystem =
