@@ -33,7 +33,9 @@ type alias Model =
   , leftToRandomize : Int
   }
 
-type alias Ecosystem = List (List Cell.Model)
+type alias CellModel = Cell.Model
+
+type alias Ecosystem = List (List CellModel)
 
 
 rows =
@@ -183,7 +185,7 @@ ecoWithSpot row col on ecosystem =
                else
                 ( { firstCell | lifeStatus = lifeStatus } :: restOfCells ) :: restOfRows
 
-liveOrDie : Cell.Model -> Ecosystem -> Cell.Model
+liveOrDie : CellModel -> Ecosystem -> CellModel
 liveOrDie ( { lifeStatus, coords } as model ) ecosystem =
   let
     cellNeighbors = neighbors coords
@@ -261,7 +263,7 @@ view ( { ecosystem, windowSize, generations } as model ) =
           , button [ buttonStyle, onClick RandomizeEcosystem ] [ text "New random board" ]
           ]
 
-renderCell : Cell.Model -> Html Msg
+renderCell : CellModel -> Html Msg
 renderCell cellModel =
   cellModel
     |> Cell.view
